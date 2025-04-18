@@ -10,6 +10,26 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - uses: WIPACrepo/wipac-dev-py-versions-action@v2.5
+      id: py-versions
+
+    - name: Verify current Python version matches requires-python
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
+        
+        expected="${{ fromJson(steps.py-versions.outputs.matrix)[0] }}"
+        actual="$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+        
+        echo "Expected Python: $expected"
+        echo "Actual Python:   $actual"
+        
+        if [[ "$actual" != "$expected" ]]; then
+          echo "::error::Current Python ($actual) does not match minimum requires-python ($expected)"
+          exit 1
+        fi
+
     - name: Install build tools
       shell: bash
       run: |
