@@ -10,7 +10,16 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - shell: bash
+    - name: Install build tools
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
+        python -m pip install --upgrade pip
+        pip install build setuptools setuptools-scm
+
+    - name: Build
+      shell: bash
       run: |
         set -euo pipefail
         echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
