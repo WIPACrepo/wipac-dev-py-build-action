@@ -18,6 +18,8 @@ It is designed to be used in automated release workflows, typically following [`
 3. Builds the package via [`python -m build`](https://pypi.org/project/build/)
     - Both `sdist` and `wheel` artifacts are created
     - **The resulting `.tar.gz` and `.whl` files are written to the `dist/` directory**
+4. **You must have the minimum supported Python version declared in `pyproject.toml` installed in the environment.**
+    - For example, if your project requires `>=3.10`, you must use `actions/setup-python` with Python 3.10 before this step.
 
 ## Inputs
 
@@ -42,6 +44,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # required to see tags and commits
+      - uses: actions/setup-python@v5
+        with:
+          python-version: <your project's min version>  # 👈 must match `requires-python`
 
       - uses: WIPACrepo/wipac-dev-next-version-action@v#.#
         id: next-version
