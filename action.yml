@@ -1,0 +1,37 @@
+name: Build Python Package with setuptools-scm
+description: >
+  Validates setuptools-scm configuration and builds a package using a provided version.
+
+inputs:
+  version:
+    description: Version to inject into setuptools-scm for the build (required)
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
+
+        # Validate setuptools-scm usage
+        if ! grep -q 'setuptools-scm' pyproject.toml; then
+            echo "::error::setuptools-scm not found in pyproject.toml — aborting"
+            exit 1
+        fi
+        #
+        if grep -A 5 '^\[project\]' pyproject.toml | grep -q '^version\s*='; then
+            echo "::error::[project] version is explicitly set — must be managed by setuptools-scm"
+            exit 1
+        fi
+        #
+        if ! grep -Eq '^\[tool\.setuptools_scm\]' pyproject.toml; then
+            echo "::error::[tool.setuptools_scm] not found in pyproject.toml — aborting"
+            exit 1
+        fi
+
+        # Build (tell SCM to use our version instead of detecting it)
+        SETUPTOOLS_SCM_PRETEND_VERSION="${{ inputs.version }}" \
+            SETUPTOOLS_SCM_DEBUG=1 \
+            python -m build
