@@ -17,6 +17,7 @@ It is designed to be used in automated release workflows, typically following [`
 2. Injects the provided version via `SETUPTOOLS_SCM_PRETEND_VERSION`
 3. Builds the package via [`python -m build`](https://pypi.org/project/build/)
     - Both `sdist` and `wheel` artifacts are created
+    - **The resulting `.tar.gz` and `.whl` files are written to the `dist/` directory**
 
 ## Inputs
 

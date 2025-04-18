@@ -1,6 +1,6 @@
 name: Build Python Package with setuptools-scm
 description: >
-  Validates setuptools-scm configuration and builds a package using a provided version.
+  Validates setuptools-scm configuration and builds a package using a provided version to the `dist/` directory.
 
 inputs:
   version:
