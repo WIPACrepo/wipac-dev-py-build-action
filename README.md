@@ -43,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # required to see tags and commits
           ref: ${{ github.sha }}  # in case 'ref' (arg default) has been updated since start
 
       - uses: actions/setup-python@v5
