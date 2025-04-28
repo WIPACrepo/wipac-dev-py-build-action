@@ -1,11 +1,6 @@
 name: Build Python Package with setuptools-scm
 description: >
-  Validates setuptools-scm configuration and builds a package using a provided version to the `dist/` directory.
-
-inputs:
-  version:
-    description: Version to inject into setuptools-scm for the build (required)
-    required: true
+  Validates setuptools-scm configuration and builds a package to the `dist/` directory.
 
 runs:
   using: "composite"
@@ -60,7 +55,6 @@ runs:
             exit 1
         fi
 
-        # Build (tell SCM to use our version instead of detecting it)
-        SETUPTOOLS_SCM_PRETEND_VERSION="${{ inputs.version }}" \
-            SETUPTOOLS_SCM_DEBUG=1 \
+        # Build!
+        SETUPTOOLS_SCM_DEBUG=1 \
             python -m build
