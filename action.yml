@@ -1,12 +1,6 @@
 name: Build Python Package with setuptools-scm
 description: >
-  Validates setuptools-scm configuration and builds a package into a specified output directory (default: `dist/`).
-
-inputs:
-  output-dir:
-    description: "Directory where the build artifacts will be written."
-    default: "dist/"
-    required: false
+  Validates setuptools-scm configuration and builds a package to the `dist/` directory.
 
 runs:
   using: "composite"
@@ -63,4 +57,4 @@ runs:
 
         # Build!
         SETUPTOOLS_SCM_DEBUG=1 \
-          python -m build --outdir "${{ inputs.output-dir }}"
+            python -m build
