@@ -1,12 +1,12 @@
 # wipac-dev-py-build-action
 
-GitHub Action to Build a Python Package Using setuptools-scm Version Injection
+GitHub Action to Build a Python Package Using `setuptools-scm`
 
 ## Overview
 
-This GHA package validates your project's `pyproject.toml` for correct [`setuptools-scm`](https://pypi.org/project/setuptools-scm/) configuration, then builds the Python package using an injected semantic version.
+This GHA package validates your project's `pyproject.toml` for correct [`setuptools-scm`](https://pypi.org/project/setuptools-scm/) configuration, then builds the Python package.
 
-It is designed to be used in automated release workflows, typically following [`WIPACrepo/wipac-dev-next-version-action`](https://github.com/WIPACrepo/wipac-dev-next-version-action).
+It is designed to be used in automated release workflows, typically preceding GitHub release and/or PyPI publishing.
 
 ## How it Works
 
@@ -14,18 +14,15 @@ It is designed to be used in automated release workflows, typically following [`
     - Lists `setuptools-scm` as a build requirement
     - Does **not** statically define `project.version`
     - Includes the `[tool.setuptools_scm]` section
-2. Injects the provided version via `SETUPTOOLS_SCM_PRETEND_VERSION`
-3. Builds the package via [`python -m build`](https://pypi.org/project/build/)
+1. Builds the package via [`python -m build`](https://pypi.org/project/build/)
     - Both `sdist` and `wheel` artifacts are created
     - **The resulting `.tar.gz` and `.whl` files are written to the `dist/` directory**
-4. **You must have the minimum supported Python version declared in `pyproject.toml` installed in the environment.**
+1. **You must have the minimum supported Python version declared in `pyproject.toml` installed in the environment.**
     - For example, if your project requires `>=3.10`, you must use `actions/setup-python` with Python 3.10 before this step.
 
 ## Inputs
 
-| Name      | Required | Description                                                                             |
-|-----------|----------|-----------------------------------------------------------------------------------------|
-| `version` | `true`   | The semantic version to inject into setuptools-scm via `SETUPTOOLS_SCM_PRETEND_VERSION` |
+_None_
 
 ## Outputs
 
@@ -33,29 +30,45 @@ _None_
 
 ## Example Usage
 
+The following is based on `WIPACrepo/wipac-dev-actions-testbed`'s [`release.yml`](https://github.com/WIPACrepo/wipac-dev-actions-testbed/blob/main/.github/workflows/release.yml):
+
 ```yaml
 jobs:
+
   ...
 
-  release:
+  py-build:
+    needs: [ ... ]
     runs-on: ubuntu-latest
-    concurrency: release
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # required to see tags and commits
+          fetch-depth: 0
+          ref: ${{ github.sha }}  # in case 'ref' (arg default) has been updated since start
+
       - uses: actions/setup-python@v5
         with:
           python-version: <your project's min version>  # 👈 must match `requires-python`
 
-      - uses: WIPACrepo/wipac-dev-next-version-action@v#.#
-        id: next-version
-        ...
+      - uses: WIPACrepo/wipac-dev-py-build-action@main
+        # ^^^ creates dist/
 
-      - if: steps.next-version.outputs.version != ''
-        uses: WIPACrepo/wipac-dev-py-build-action@v#.#
+      - name: Upload dist/ artifact
+        uses: actions/upload-artifact@v4
         with:
-          version: ${{ steps.next-version.outputs.version }}
+          name: dist
+          path: dist/
 
+  github-release:
+    needs: [ py-build ]
+    runs-on: ubuntu-latest
+    steps:
       ...
+
+  pypi-publish:
+    needs: [ py-build ]
+    runs-on: ubuntu-latest
+    steps:
+      ...
+
 ```
