@@ -45,7 +45,7 @@ jobs:
     ...
   ]
   runs-on: ubuntu-latest
-  concurrency: release  # prevent any possible race conditions
+  concurrency: tag-and-release  # prevent any possible race conditions
   steps:
     - uses: actions/checkout@v4
       with:
