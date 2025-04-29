@@ -11,8 +11,8 @@ runs:
     - name: Verify current Python version matches requires-python
       shell: bash
       run: |
-        set -euo pipefail
-        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
+        # step: Verify current Python version matches requires-python
+        set -euo pipefail; echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         
         expected="${{ fromJson(steps.py-versions.outputs.matrix)[0] }}"
         actual="$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
@@ -28,8 +28,8 @@ runs:
     - name: Validate project's setuptools-scm usage
       shell: bash
       run: |
-        set -euo pipefail
-        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
+        # step: Validate project's setuptools-scm usage
+        set -euo pipefail; echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
 
         if ! grep -q 'setuptools-scm' pyproject.toml; then
             echo "::error::setuptools-scm not found in pyproject.toml — aborting"
@@ -49,8 +49,8 @@ runs:
     - name: Install build tools
       shell: bash
       run: |
-        set -euo pipefail
-        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
+        # step: Install build tools
+        set -euo pipefail; echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         
         python -m pip install --upgrade pip
         pip install build setuptools setuptools-scm
@@ -58,8 +58,8 @@ runs:
     - name: Build
       shell: bash
       run: |
-        set -euo pipefail
-        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
+        # step: Build
+        set -euo pipefail; echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         
         SETUPTOOLS_SCM_DEBUG=1 \
             python -m build
