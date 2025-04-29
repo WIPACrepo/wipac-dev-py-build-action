@@ -41,6 +41,7 @@ jobs:
   # only run on main/master/default
   if: format('refs/heads/{0}', github.event.repository.default_branch) == github.ref
   needs: [
+    py-versions,
     ...
   ]
   runs-on: ubuntu-latest
@@ -55,7 +56,7 @@ jobs:
       with:
         python-version: "${{ fromJSON(needs.py-versions.outputs.matrix)[0] }}"
 
-    - uses: WIPACrepo/wipac-dev-next-version-action@v1.1
+    - uses: WIPACrepo/wipac-dev-next-version-action@...
       id: next-version
       ...
 
@@ -64,7 +65,7 @@ jobs:
       ...
 
     - if: steps.next-version.outputs.version != ''
-      uses: WIPACrepo/wipac-dev-py-build-action@v1.0
+      uses: WIPACrepo/wipac-dev-py-build-action@...
       # -> uses the most recent git tag for versioning
       # -> creates 'dist/' files
 
