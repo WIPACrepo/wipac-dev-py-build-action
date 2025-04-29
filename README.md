@@ -30,45 +30,57 @@ _None_
 
 ## Example Usage
 
-The following is based on `WIPACrepo/wipac-dev-actions-testbed`'s [`release.yml`](https://github.com/WIPACrepo/wipac-dev-actions-testbed/blob/main/.github/workflows/release.yml):
+The following is based on `WIPACrepo/wipac-dev-actions-testbed`'s [`cicd.yml`](https://github.com/WIPACrepo/wipac-dev-actions-testbed/blob/main/.github/workflows/cicd.yml):
 
 ```yaml
 jobs:
 
   ...
 
-  py-build:
-    needs: [ ... ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # required to see tags and commits
-          ref: ${{ github.sha }}  # in case 'ref' (arg default) has been updated since start
+  tag-and-release:
+  # only run on main/master/default
+  if: format('refs/heads/{0}', github.event.repository.default_branch) == github.ref
+  needs: [
+    ...
+  ]
+  runs-on: ubuntu-latest
+  concurrency: release  # prevent any possible race conditions
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # required to see tags and commits
+        ref: ${{ github.sha }}  # lock to triggered commit ('github.ref' is dynamic)
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: <your project's min version>  # 👈 must match `requires-python`
+    - uses: actions/setup-python@v5  # needed for building project
+      with:
+        python-version: "${{ fromJSON(needs.py-versions.outputs.matrix)[0] }}"
 
-      - uses: WIPACrepo/wipac-dev-py-build-action@main
-        # ^^^ creates dist/
-
-      - name: Upload dist/ artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
-
-  github-release:
-    needs: [ py-build ]
-    runs-on: ubuntu-latest
-    steps:
+    - uses: WIPACrepo/wipac-dev-next-version-action@v1.1
+      id: next-version
       ...
 
-  pypi-publish:
-    needs: [ py-build ]
-    runs-on: ubuntu-latest
-    steps:
+    - if: steps.next-version.outputs.version != ''
+      name: Tag New Version
       ...
+
+    - if: steps.next-version.outputs.version != ''
+      uses: WIPACrepo/wipac-dev-py-build-action@v1.0
+      # -> uses the most recent git tag for versioning
+      # -> creates 'dist/' files
+
+    - if: steps.next-version.outputs.version != ''
+      uses: softprops/action-gh-release@v2
+      with:
+        files: dist/*
+        tag_name: v${{ steps.next-version.outputs.version }}  # must match git tag above
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.next-version.outputs.version != ''
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_TOKEN }}
 
 ```
