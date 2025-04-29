@@ -25,7 +25,15 @@ runs:
           exit 1
         fi
 
-    - name: Validate project
+    - name: Install build tools
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
+        python -m pip install --upgrade pip
+        pip install build setuptools setuptools-scm
+
+    - name: Build
       shell: bash
       run: |
         set -euo pipefail
@@ -47,27 +55,6 @@ runs:
             exit 1
         fi
 
-    - name: Install build tools
-      shell: bash
-      run: |
-        set -euo pipefail
-        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
-        python -m pip install --upgrade pip
-        pip install build setuptools setuptools-scm
-
-    - name: Build
-      shell: bash
-      run: |
-        set -euo pipefail
-        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
-        
-        # last minute check that branch has not been updated
-        git fetch &> /dev/null
-        if [[ $(git status -sb | grep behind) ]]; then
-          echo "this commit is not most recent on this branch -- rest of action will be aborted"
-          exit 1
-        fi
-        
         # Build!
         SETUPTOOLS_SCM_DEBUG=1 \
             python -m build
