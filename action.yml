@@ -25,11 +25,33 @@ runs:
           exit 1
         fi
 
+    - name: Validate project's setuptools-scm usage
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
+
+        if ! grep -q 'setuptools-scm' pyproject.toml; then
+            echo "::error::setuptools-scm not found in pyproject.toml — aborting"
+            exit 1
+        fi
+        
+        if grep -A 5 '^\[project\]' pyproject.toml | grep -q '^version\s*='; then
+            echo "::error::[project] version is explicitly set — must be managed by setuptools-scm"
+            exit 1
+        fi
+        
+        if ! grep -Eq '^\[tool\.setuptools_scm\]' pyproject.toml; then
+            echo "::error::[tool.setuptools_scm] not found in pyproject.toml — aborting"
+            exit 1
+        fi
+
     - name: Install build tools
       shell: bash
       run: |
         set -euo pipefail
         echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
+        
         python -m pip install --upgrade pip
         pip install build setuptools setuptools-scm
 
@@ -38,23 +60,6 @@ runs:
       run: |
         set -euo pipefail
         echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
-
-        # Validate setuptools-scm usage
-        if ! grep -q 'setuptools-scm' pyproject.toml; then
-            echo "::error::setuptools-scm not found in pyproject.toml — aborting"
-            exit 1
-        fi
-        #
-        if grep -A 5 '^\[project\]' pyproject.toml | grep -q '^version\s*='; then
-            echo "::error::[project] version is explicitly set — must be managed by setuptools-scm"
-            exit 1
-        fi
-        #
-        if ! grep -Eq '^\[tool\.setuptools_scm\]' pyproject.toml; then
-            echo "::error::[tool.setuptools_scm] not found in pyproject.toml — aborting"
-            exit 1
-        fi
-
-        # Build!
+        
         SETUPTOOLS_SCM_DEBUG=1 \
             python -m build
