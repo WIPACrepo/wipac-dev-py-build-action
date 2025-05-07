@@ -5,8 +5,33 @@ description: >
 runs:
   using: "composite"
   steps:
-    - uses: WIPACrepo/wipac-dev-py-versions-action@v2.6-alpha
-      id: py-versions
+    - name: Figure Project's Min Py Version
+      id: min-py
+      shell: bash
+      run: |
+        # step: Figure Project's Min Py Version
+        set -euo pipefail; echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
+        
+        sudo apt-get update
+        python -m venv action_venv
+        . action_venv/bin/activate
+        pip3 install wipac-dev-tools
+        
+        MIN_PY=$(python -c "
+        from wipac_dev_tools import semver_parser_tools
+
+        top_python = semver_parser_tools.get_latest_py3_release()
+        all_matches = semver_parser_tools.list_all_majmin_versions(
+          major=top_python[0],
+          semver_range=semver_range,
+          max_minor=top_python[1],
+        )
+        
+        first = all_matches[0]
+        print(f'{first[0]}.{first[1]}')
+        ")
+        
+        echo "MIN_PY=$MIN_PY" >> "$GITHUB_ENV"
 
     - name: Verify current Python version matches requires-python
       shell: bash
@@ -14,7 +39,7 @@ runs:
         # step: Verify current Python version matches requires-python
         set -euo pipefail; echo "now: $(date -u +"%Y-%m-%dT%H:%M:%S.%3N")"
         
-        expected="${{ fromJson(steps.py-versions.outputs.matrix)[0] }}"
+        expected="$MIN_PY"
         actual="$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
         
         echo "Expected Python: $expected"
