@@ -23,7 +23,7 @@ runs:
         top_python = semver_parser_tools.get_latest_py3_release()
         all_matches = semver_parser_tools.list_all_majmin_versions(
           major=top_python[0],
-          semver_range=semver_range,
+          semver_range=semver_parser_tools.get_py_semver_range_for_project(),
           max_minor=top_python[1],
         )
         
